@@ -90,12 +90,10 @@ const port = 3000;
                     if( count < tmp_dirs.length-1 )
                            tmp_dirs.splice( count,tmp_dirs.length ) ;
                            tmp_dirs[count] =  key;
-                 /*  if(!Strings.contain(key,".html")){                         
-                           tmp_file_name = "";
-                  }else  tmp_file_name = "/"+ key; */
-                 
                    var tmp_dir =tmp_dirs.join("/");
-                   treeLinks.push(tmp);
+                   if(!Strings.contain(tmp_dir,".html"))
+                        treeLinks.push(tmp_dir );
+                   console.log(tmp_dir + "____");
                    ext = '.html';
                    tag = "<a href=' /?url="+tmp_dir.replace(/\/\//g,"/") + " '>" + key.replace(ext,'')  +  "</a>";
                    //tag = key;
@@ -110,11 +108,7 @@ const port = 3000;
         let form = use.Resource('view/editor.html');  
         var script="" ;   var txt  = "";
         let au = treeLinks;
-        var i = 0; while(i<au.length){ 
-            au[i] = au[i].split('/');au[i];au[i].shift();au[i].pop();
-            au[i] = au[i].join("/").replace("document","").replace("/app","").replace("/tree","");
-         i=(i+1)|0; }
-         au = Arrays.unique(au);
+             au = Arrays.unique(au);
        let json ="<script> "+ stru + vt +JSON.stringify(au) +";</script>"; 
        let params = qs.parse(req.url);
        console.log(params);

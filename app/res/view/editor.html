@@ -16,14 +16,15 @@
     var action = "./document/tree/";
     var select = document.getElementById("directory");
 
-   var loc =getQueryString().url.split("/");
+   var url =getQueryString().url;
+   loc = url.split("/");
    file_name = loc.pop();
      if(file_name){
        var input_file_name = document.getElementById("file_name");
        input_file_name.value = file_name.substring(0,file_name.length-5);
      }
      
-    loc = loc.join("/"); loc = loc.replace("/document","").replace("/app","").replace("/tree","");
+    loc = loc.join("/"); loc = loc.replace("/document/app/tree","");
     var i = 0; while( i<treeLinks.length) {
     var option = document.createElement('option');
     if(loc ==treeLinks[i])option.selected = true ;
