@@ -1,0 +1,79 @@
+<article id="messageArea"></article>
+<article id="editorArea" class ="col-12 col-sm-7 float-left">
+<select id="directory"> 
+<option value ="">/</option>
+<input type = "text" placeholder="file name" id ="file_name"></input>
+</select>
+<button onclick="submit()" class ="col-3">save</button>
+<button onclick="clear()" class ="col-2">clear</button>
+<form method="post"  name ="mdForm">
+<textarea id="Editor"  name="md" style="display: none;"></textarea>
+</form>
+</article>
+
+<script>
+    var simplemde = new SimpleMDE();
+    var action = "./document/tree/";
+    var select = document.getElementById("directory");
+
+   var loc =getQueryString().url.split("/");
+   file_name = loc.pop();
+     if(file_name){
+       var input_file_name = document.getElementById("file_name");
+       input_file_name.value = file_name.substring(0,file_name.length-5);
+     }
+     
+    loc = loc.join("/"); loc = loc.replace("/document","").replace("/app","").replace("/tree","");
+    var i = 0; while( i<treeLinks.length) {
+    var option = document.createElement('option');
+    if(loc ==treeLinks[i])option.selected = true ;
+    var tl = treeLinks[i]+"/";
+     option.value =  tl ;
+     option.innerHTML = tl;
+    select.appendChild(option);
+     i=(i+1)|0; };
+    
+
+var contents;
+var file_input = document.getElementById('file');
+var name ;
+function submit() {
+
+    var pele = document.createElement('input');
+    var directory = document.getElementById('directory').value;
+    var file_name = document.getElementById('file_name').value;
+    var pathname = directory + file_name + ".html";
+
+    pele.setAttribute('type', 'hidden');
+    pele.setAttribute('name', 'path');
+    pele.setAttribute('value', pathname);
+    pele.setAttribute('md',simplemde.value());
+    document.mdForm.appendChild(pele);
+    document.mdForm.action = action + pathname;
+    document.mdForm.submit();
+}
+
+function load_editor (txt){
+simplemde.value(txt.replace(/<br>/g,"\n"));
+}
+load_editor("");
+function clear (){
+    simplemde.toTextArea();
+    simplemde = null;
+     simplemde = new SimpleMDE();
+}
+function getQueryString() {
+  if (1 < document.location.search.length) {
+     var query = document.location.search.substring(1);
+     var parameters = query.split('&');
+    var result = new Object();
+    for (var i = 0; i < parameters.length; i++) {
+       var element = parameters[i].split('=');
+      var paramName = decodeURIComponent(element[0]);
+      var paramValue = decodeURIComponent(element[1]);
+      result[paramName] = decodeURIComponent(paramValue);
+    return result;
+  }
+  return null;
+} }
+ </script>
