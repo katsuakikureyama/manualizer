@@ -9,17 +9,14 @@ http://opensource.org/licenses/mit-license.php
 
 /*  you should use ES6 notation  */
 
-const http = require('http');
-const fs = require('fs');
-const archiver = require('archiver');
-const path = require("path");
 const package = require("./package.js");
 
 package.node = {};
 package.node.FileManager = (function(){
 	return package.lang.object ( function (public){
-
-        public.mkdir_all = function(dirs,base){
+        const fs = require('fs');
+        const path = require("path"); 
+        public.mkdirAll = function(dirs,base){
             if(!dirs){ return false; }
                var temp = "";
                var i = 0;while(i < dirs.length) {
@@ -29,9 +26,16 @@ package.node.FileManager = (function(){
               temp += dirs[i]+"/";
               i=(i+1)|0; }
             }
-     public.readIfExsist = function(path){
-        return (fs.existsSync(path))?fs.readFileSync(path, 'utf-8' ) : false;
+     public.readIfExsist = function(file_path){
+        return (fs.existsSync(path))?fs.readFileSync(file_path, 'utf-8' ) : false;
      }
+     
+     public.write = function(file_path,text,callback){
+          fs.writeFile(file_path , text , (err) => {
+              if(callback)callback(err);
+         }); 
+     }
+     
      public.finder = function(p,success) {
        let files = fs.readdirSync(p);
        files.filter(function(f){
@@ -41,8 +45,10 @@ package.node.FileManager = (function(){
         });
     };
     public.zip = function(dir_str,filename,to){
+    const archiver = require('archiver');
+    
      let dirs = dir_str.split("/");
-     public.mkdir_all(dirs,"/");
+     public.mkdirAll(dirs,"/");
      var output = fs.createWriteStream(dir_str+filename+'.zip');
      var archive = archiver('zip');
         output.on('close', function () {
@@ -57,9 +63,51 @@ package.node.FileManager = (function(){
       } )();
 })();
 
+package.node.Crypto = (function(){
+     return package.lang.object ( function (public){
+    const crypto = require("crypto");
+    public.encryptAES256 = (text) => {
+       let cipher = crypto.createCipher('aes-256-ctr' ,key)
+       return crypted = cipher.update(text,'utf8','hex') + cipher.final('hex');
+    }
+    public.decryptAES256 = (text) => {
+      let decipher = crypto.createDecipher('aes-256-ctr',key);
+      return decipher.update(text,'hex','utf8') + decipher.final('utf8');
+    };
+   public.sha256 = (seed) =>{
+       let hash = crypto.createHash('sha256')
+       hash.update(seed)
+       return hash.digest('base64')
+   } 
+  	   })();
+})();
+package.node.AdminManager = (function(){
+	return package.lang.object ( function (public){
+	      const Crypto = package.node.Crypto;
+	      const FileManager = package.node.FileManager;
+	      
+	      public.userAdd = function(user,pass,path,file_name){
+	            let hashed_pass = Crypto.sha256(pass);
+	            var save_obj = {};
+	            var file = FileManager.readIfExsist(path+file_name);
+	            if(file){  try {  save_obj  = JSON.parse(file);  }
+                           catch (e) { save_obj = {}; cosole.log(e); } }
+               else FileManager.mkdirAll(path); 
+      
+                if( save_obj[user] ) 
+                     console.log(" user was exsits"); 
+                else{ save_obj[user] = hashed_pass; 
+                          FileManager.write(path+file_name, JSON.stringify( save_obj ));
+                          return true; }
+               return false;           
+	        }
+  	   })();
+})();
+
 package.node.App = (function(){
 	return package.lang.object ( function (public){
-  	    
+  	const http = require('http');
+   
    public.routes = function (){
       let get_methods = {};let post_methods = {};
       let get = function ( dir ,callback){ get_methods[dir] = callback; } 

@@ -11,7 +11,7 @@ const package = use.Library("package.js.node.js");
    const App = package.node.App; 
    const FileManager = package.node.FileManager; 
    const Arrays = package.utility.Arrays; 
-    const Strings = package.utility.Strings; 
+   const Strings = package.utility.Strings; 
    const Objects = package.utility.Objects; 
    const Render = package.html.Render; 
 
@@ -47,16 +47,16 @@ const port = 3000;
          
         var contentsJSON =  (!contents)? {}:JSON.parse(contents.replace(vc,""));
         contentsJSON[postDataObject.path] = postDataObject;
-       
-         fs.writeFile(contents_path,vc+JSON.stringify(contentsJSON),(error) => {console.log(":"+error); });
+       FileManager.write(contents_path,vc+JSON.stringify(contentsJSON),function(e){if(e)console.log(e);});
+        
         let path = postDataObject.path;
     
         let dirs = path.split("/"); dirs.pop();
-        FileManager.mkdir_all(dirs,document_tree_path);
+        FileManager.mkdirAll(dirs,document_tree_path);
            
         let save = head + postDataObject.md + foot; 
-          fs.writeFile(document_tree_path+path,save,(error) => {console.log(":"+error); });           
-            
+         FileManager.write(document_tree_path+path,save,function(e){if(e)console.log(e);});
+        
          let view = "<!DOCTYPE html><html><head></head><body><a href='/'>return</a></body></html>";
          App.render(res,view); 
 };
@@ -71,7 +71,8 @@ const port = 3000;
            map = Object.assign(Objects.dig(map,list));    
         });     
          let stru= vs + JSON.stringify(map) + ";";
-         fs.writeFile(structure_path,stru,(error) => { /* handle error */ }); 
+          FileManager.write(structure_path,stru,function(e){if(e)console.log(e);});
+        
          let postDataObject = qs.parse(data);
                FileManager.zip(archives_dir,"/document","document");
                
