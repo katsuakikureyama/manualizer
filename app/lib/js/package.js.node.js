@@ -9,9 +9,11 @@ http://opensource.org/licenses/mit-license.php
 
 /*  you should use ES6 notation  */
 
+
+
 const package = require("./package.js");
 
-package.node = {};
+package.node = package.node|| {};
 package.node.FileManager = (function(){
 	return package.lang.object ( function (public){
         const fs = require('fs');
@@ -151,5 +153,5 @@ package.node.App = (function(){
    })();
 })();
 
-  if(package.isNode)
+  if(package.inNodeJS)
     module.exports = package;

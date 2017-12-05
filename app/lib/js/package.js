@@ -15,9 +15,11 @@ http://opensource.org/licenses/mit-license.php
 
 var package = package || (function (use){ 
 var PackageJS = PackageJS ||  function (js){
-
-if(!js.isNode)
-  js.isNode = module ? module.exports ? true: false:false;
+	if( js.inNodeJS === undefined )
+     try{
+     	    if( module )
+                if(module.exports ) js.inNodeJS = true;
+   } catch( err ){ js.inNodeJS = false; } 
 
 js.lang = js.lang || {}; js.lib = js.lib || {};
 js.lang.object = function(body){return function(){ var _={}; body(_); return _; }; }
@@ -96,10 +98,35 @@ js.lang.implements = function(acceser,impl){
 } 
 js.lang.struct = function() { var args = arguments , len = args.length; if((len % 2)!=0) throw new Error( Object.keys(this)[0] + "argument nunber is invalid");	var obj = {}; for(var i=0;i < len ; i += 2) obj[args[i]] = args[i+1];return function(){ return obj; }; }
 
+js.loader  = (function(){
+return js.lang.object ( function (public){    
+      var ext = ".js";
+     public.import = function(name){
+         if ( js[name] === undefined)
+            if ( ! js.inNodeJS) scriptTag(name);
+           else imports(name);
+      }
+      this.imports = function(name){ module.exports =  name + ext; }
+      this.scriptTag = function(name){
+        var scripts = document.getElementsByTagName( 'script' );
+         var i = 0 ;while( i < scripts.length){ 
+             if(li = scripts[i].src.lastIndexOf("package.js"))
+                  {  name = scripts[i].src + "." + name + ".js";  break; } 
+          i=(i+1)|0;}
+         var script = document.createElement( 'script' );
+         script.type = 'text/javascript';  script.src = name;
+         var packageTag = document.getElementsByTagName( 'script' )[ i ];
+         packageTag.parentNode.insertBefore( script, null);
+       }
+      
+      })();
+})();
+
+
 return js; }({});
 PackageJS.lib = PackageJS.lib || 
 { accessor : { final: Object.freeze }}; return PackageJS; })();
 
-  if(package.isNode)
+  if(package.inNodeJS)
     module.exports = package;
   
