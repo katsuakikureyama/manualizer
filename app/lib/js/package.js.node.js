@@ -9,8 +9,6 @@ http://opensource.org/licenses/mit-license.php
 
 /*  you should use ES6 notation  */
 
-
-
 const package = require("./package.js");
 
 package.node = package.node|| {};
@@ -18,18 +16,18 @@ package.node.FileManager = (function(){
 	return package.lang.object ( function (public){
         const fs = require('fs');
         const path = require("path"); 
-        public.mkdirAll = function(dirs,base){
-            if(!dirs){ return false; }
+        public.mkdirAll = function(dirarr,base){
+            if(!dirarr){ return false; }
                var temp = "";
-               var i = 0;while(i < dirs.length) {
-               var d = base+temp+dirs[i];
+               var i = 0;while(i < dirarr.length) {
+               var d = base+temp+dirarr[i];
             if(!fs.existsSync(d))
                   fs.mkdirSync(d);
-              temp += dirs[i]+"/";
+              temp += dirarr[i]+"/";
               i=(i+1)|0; }
             }
      public.readIfExsist = function(file_path){
-        return (fs.existsSync(path))?fs.readFileSync(file_path, 'utf-8' ) : false;
+        return (fs.existsSync(file_path))?fs.readFileSync(file_path, 'utf-8' ) : false;
      }
      
      public.write = function(file_path,text,callback){
@@ -88,21 +86,51 @@ package.node.AdminManager = (function(){
 	      const Crypto = package.node.Crypto;
 	      const FileManager = package.node.FileManager;
 	      
-	      public.userAdd = function(user,pass,path,file_name){
+	      public.userAdd = function(user,pass,auth,path,filename){
+	           if(!user || !pass || !auth || !path || !filename ) return false;
+	           console.log(user+pass+auth);
+	           if(auth !== "author" && auth !== "subscriber")
+	             {  console.log("i'm sorry. you must be select author or subscriber .");  return false; }
 	            let hashed_pass = Crypto.sha256(pass);
 	            var save_obj = {};
-	            var file = FileManager.readIfExsist(path+file_name);
-	            if(file){  try {  save_obj  = JSON.parse(file);  }
-                           catch (e) { save_obj = {}; cosole.log(e); } }
-               else FileManager.mkdirAll(path); 
+	            let currentpath = "./";  let p = path.join("/");
+	            let file_path =currentpath+p+"/"+filename;
+	            let file = FileManager.readIfExsist(file_path);
+	        
+	            if(file){  try {  save_obj  = JSON.parse(file); }
+                           catch (e) { save_obj = {}; cosole.log(e);} }
+               else FileManager.mkdirAll(path,currentpath); 
       
                 if( save_obj[user] ) 
-                     console.log(" user was exsits"); 
-                else{ save_obj[user] = hashed_pass; 
-                          FileManager.write(path+file_name, JSON.stringify( save_obj ));
+                     console.log(" user was exsists"); 
+                else{ save_obj[user] = {password:hashed_pass,authority:auth}; 
+                     console.log(file_path);
+                          FileManager.write(file_path, JSON.stringify( save_obj ));
                           return true; }
                return false;           
 	        }
+	      public.userDel = function(user,pass,path,filename){
+	           if(!user || !pass || !path || !filename ) return false;
+	        
+	            let hashed_pass = Crypto.sha256(pass);
+	            var save_obj = {};
+	            let currentpath = "./";  let p = path.join("/");
+	            let file_path =currentpath+p+"/"+filename;
+	            let file = FileManager.readIfExsist(file_path);
+	        
+	            if(file){  
+	            try {  save_obj  = JSON.parse(file);
+                        if( save_obj[user].password === hashed_pass )  {
+                            delete save_obj[user];
+                            FileManager.write(file_path, JSON.stringify( save_obj )); 
+                              return true;  }
+	            } catch (e) { cosole.log(e);} }
+      
+                   console.log("user was now exsists")
+               return false;           
+	        }   
+	        
+	        
   	   })();
 })();
 
