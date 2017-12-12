@@ -26,7 +26,7 @@ console.log(req.headers.cookie);
 
 
     let isLogin = AdminManager.login(postDataObject.user, postDataObject.password,"/admin/user.txt");
-    App.setHeader(res,AdminManager.session(3600,false));
+    App.setHeader(res,AdminManager.session(3600,false,"/admin/user.txt"));
     if(!isLogin)
       App.render(res,loginView);
     else
@@ -35,6 +35,7 @@ console.log(req.headers.cookie);
 
  public.get = function (req,res,data){
    //     App.render(res,view);
+   console.log(req.headers.cookie);
    App.render(res,loginView);
   };
     　},/* static = */ true ,/* protected = */ false);

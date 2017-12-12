@@ -91,21 +91,61 @@ package.node.AdminManager = (function(){
 	      const FileManager = package.node.FileManager;
         const currentpath = "./";
 
-				public.session = function (time,isSecure){
-					 let option =	['name='+Crypto.randStr(),'max-age='+time];
-					 if(isSecure) option.push('Secure');
-					 return {'Set-Cookie':option,'session':true};
-				}
+
+       let getJSONWithFileIfNeedsDig = function(file_path){
+         let obj;
+				 let file = FileManager.readIfExsist(file_path);
+				 if(file){  try{ obj = JSON.parse(file); }
+										catch (e){ obj = {}; cosole.log(e); }
+				 }else FileManager.mkdirAll(file_path);
+				 return obj;
+			 }
+			 let getJSONWithFile = function(file_path){
+				 let obj;
+				 let file = FileManager.readIfExsist(file_path);
+				 if(file){  try{ obj  = JSON.parse(file);}
+				 						 catch (e){ obj = {};}
+								 } else return false;
+					return obj;
+			 }
+
+        var session_path;
+				var is_secure_session = false;
+				var session_expiration_ms = 3600;
+				var session_time = 3600;
+				public.session ={
+					setFilePath:function(file_path){
+						  session_path = currentpath + file_path;
+					},setOption:function(time,isSecure,expiration_ms){
+              session_time = time;
+						  isSecureSession = isSecure;
+						  session_expiration_ms = expiration_ms;
+					},start: function (){
+					     let randCookie = Crypto.randStr();
+					     let option =	['name='+randCookie,'max-age='+session_time];
+					        if(is_secure_session ) option.push('Secure');
+					      save_obj = getJSONIfNeedsDig(session_path);
+                save_obj[randCookie] = Date.now() + session_expiration_ms;
+              FileManager.write(session_path, JSON.stringify( save_obj ));
+							return {'Set-Cookie':option,'session':true};
+				},authenticate:function(session){
+              if(!sesson)return false;
+							 let obj = getJSONWithFile(session_path);
+               let expiration_date = obj[session];
+							 if(expiration_date)
+							    if(expiration_date > Date.now())
+									   return true;
+
+							return false;
+					}
+			  };
+
 
         public.login = function(user,password,file_path){
 					if(!user || user == "")return false;
 
-					var save_obj = {};
-					let file = FileManager.readIfExsist(currentpath+file_path);
-					if(file){  try {  save_obj  = JSON.parse(file); }
-											 catch (e) { save_obj = {}; cosole.log(e);} }
-						else return false;
 
+					let save_obj = getJSONWithFile(currentpath+file_path);
 					if(!save_obj[user]) return;
 
 					let hashed_pass = Crypto.sha256(password);
@@ -122,12 +162,8 @@ package.node.AdminManager = (function(){
 	            let hashed_pass = Crypto.sha256(pass);
 	            var save_obj = {};
 	            let p = path.join("/");
-	            let file_path =currentpath+p+"/"+filename;
-	            let file = FileManager.readIfExsist(file_path);
 
-	            if(file){  try {  save_obj  = JSON.parse(file); }
-                           catch (e) { save_obj = {}; cosole.log(e);} }
-               else FileManager.mkdirAll(path,currentpath);
+							save_obj = getJSONIfNeedsDig(file_path);
 
                 if( save_obj[user] )
                      console.log(" user was exsists");
